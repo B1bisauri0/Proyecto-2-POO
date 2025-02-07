@@ -1,0 +1,72 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package Commands;
+
+import Clientes.Cliente;
+import Radares.Radares;
+import Radares.Spot;
+import com.mycompany.proyecto2.Mapa.Barco;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Tamara
+ */
+public class SpotCommand extends BaseCommand implements Serializable{
+    
+    public static final String COMMAND_NAME = "Spot";       
+    
+    @Override       
+    public String getCommandName() {           
+        return COMMAND_NAME;   
+    }       
+    
+    @Override
+    public void execute(String[] args, OutputStream out, Barco barco, int Atacante, int Receptor, Cliente cliente) {
+        
+        // Imagen del comandante de ataques
+        ImageIcon icon = new javax.swing.ImageIcon(System.getProperty("user.dir") + "\\src\\main\\java\\Imagenes\\ComandanteRadares.png"); 
+        
+        try{
+            // Si el la cantidad de radares son 0 o menos
+            if(barco.getSpot()<= 0){
+                throw new IllegalArgumentException("Spots insuficientes");
+            }
+            
+            // Si no, significa que se puede realizar el radar
+            else{
+                // Le resta un radar al barco
+                barco.setSpot(barco.getSpot() - 1);
+                cliente.getPantalla().lblSpotC1.setText(Integer.toString(barco.getSpot()));
+                
+                // Manda el barco para que se le seteen sus respectivos valores
+                cliente.salida1.reset();
+                cliente.salida1.writeObject(barco);
+                cliente.salida1.flush();
+                
+                // Si al final se ejecuta el comando
+                cliente.salidaDatos.writeInt(cliente.getBarco().getNumBarco());
+                cliente.Turno = false;
+                cliente.threadTurnos.Turno = false;
+                
+                // Inicia el radar
+                Spot spot = new Spot(cliente, barco);
+                spot.EjecutarSpot();
+            }
+            
+        } catch(IllegalArgumentException e){
+            JOptionPane.showMessageDialog(null, "Comandante de Radares: Hey capitán, que spots lanzaremos si no hay!", "No hay spots", JOptionPane.INFORMATION_MESSAGE, icon);
+        } catch (IOException ex) {
+            Logger.getLogger(RadarShortCommand.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }        
+}
